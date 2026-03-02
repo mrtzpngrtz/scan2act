@@ -6,6 +6,9 @@ from io import BytesIO
 from PyQt5.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget, QDesktopWidget
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import QTimer, Qt
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
+import threading
 
 # Configuration
 # Change these to point to your actual hosted cloud environment.
