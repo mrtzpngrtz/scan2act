@@ -4,7 +4,7 @@
 
 By scanning a dynamically changing QR code on a local display, users are instantly connected to a cloud-hosted interface where they can send commands, inputs, or data back to the local installation. It's an incredibly convenient, frictionless way to bridge the physical installation space with the user's mobile device.
 
-**Everything is possible:**
+**Possible Usecases:**
 - Text Prompts (e.g., for AI Image Generation like ComfyUI)
 - Live Input & Controls
 - Drawing & Canvas Data
