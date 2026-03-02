@@ -8,6 +8,8 @@ from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import QTimer, Qt
 
 # Configuration
+# Change these to point to your actual hosted cloud environment.
+# Example: "https://yourwebsite.com/scan2act/backend.php"
 BACKEND_URL = "https://aop.studio/projects/qr1/backend.php"
 FRONTEND_URL = "https://aop.studio/projects/qr1/index.html"
 POLL_INTERVAL_MS = 2000 # 2 seconds
