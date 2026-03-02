@@ -142,8 +142,67 @@
     </div>
     
     <div id="form-section" style="display: none;">
-        <textarea id="promptInput" placeholder="A futuristic city at sunset..."></textarea>
-        <button id="submitBtn">I CAN DO THAT TOO</button>
+        <!-- Mode 1: Text Prompt -->
+        <div id="mode-1" style="display: none;">
+            <textarea id="promptInput" placeholder="A futuristic city at sunset..."></textarea>
+            <button id="submitBtn" onclick="submitText()">I CAN DO THAT TOO</button>
+        </div>
+        
+        <!-- Mode 2: Drawing Canvas -->
+        <div id="mode-2" style="display: none;">
+            <canvas id="drawCanvas" width="400" height="400" style="border: 2px solid #000; width: 100%; height: auto; touch-action: none; background: #fff; margin-bottom: 20px;"></canvas>
+            <button id="clearBtn" onclick="clearCanvas()" style="background: #fff; color: #000; margin-bottom: 10px;">CLEAR CANVAS</button>
+            <button id="submitDrawBtn" onclick="submitDrawing()">SEND DRAWING</button>
+        </div>
+
+        <!-- Mode 3: Yes / No Buttons -->
+        <div id="mode-3" style="display: none;">
+            <div style="display: flex; gap: 10px;">
+                <button id="yesBtn" onclick="submitChoice('YES')" style="background: #fff; color: #000;">YES</button>
+                <button id="noBtn" onclick="submitChoice('NO')">NO</button>
+            </div>
+        </div>
+
+        <!-- Mode 4: 5 Horizontal Sliders -->
+        <div id="mode-4" style="display: none;">
+            <div class="slider-container" style="margin-bottom: 15px;">
+                <label for="slider1" style="display: block; font-weight: bold; margin-bottom: 5px;">Parameter 1 <span id="val1">50</span></label>
+                <input type="range" id="slider1" min="0" max="100" value="50" style="width: 100%; -webkit-appearance: none; appearance: none; height: 10px; background: #ddd; outline: none;" oninput="document.getElementById('val1').innerText = this.value">
+            </div>
+            <div class="slider-container" style="margin-bottom: 15px;">
+                <label for="slider2" style="display: block; font-weight: bold; margin-bottom: 5px;">Parameter 2 <span id="val2">50</span></label>
+                <input type="range" id="slider2" min="0" max="100" value="50" style="width: 100%; -webkit-appearance: none; appearance: none; height: 10px; background: #ddd; outline: none;" oninput="document.getElementById('val2').innerText = this.value">
+            </div>
+            <div class="slider-container" style="margin-bottom: 15px;">
+                <label for="slider3" style="display: block; font-weight: bold; margin-bottom: 5px;">Parameter 3 <span id="val3">50</span></label>
+                <input type="range" id="slider3" min="0" max="100" value="50" style="width: 100%; -webkit-appearance: none; appearance: none; height: 10px; background: #ddd; outline: none;" oninput="document.getElementById('val3').innerText = this.value">
+            </div>
+            <div class="slider-container" style="margin-bottom: 15px;">
+                <label for="slider4" style="display: block; font-weight: bold; margin-bottom: 5px;">Parameter 4 <span id="val4">50</span></label>
+                <input type="range" id="slider4" min="0" max="100" value="50" style="width: 100%; -webkit-appearance: none; appearance: none; height: 10px; background: #ddd; outline: none;" oninput="document.getElementById('val4').innerText = this.value">
+            </div>
+            <div class="slider-container" style="margin-bottom: 25px;">
+                <label for="slider5" style="display: block; font-weight: bold; margin-bottom: 5px;">Parameter 5 <span id="val5">50</span></label>
+                <input type="range" id="slider5" min="0" max="100" value="50" style="width: 100%; -webkit-appearance: none; appearance: none; height: 10px; background: #ddd; outline: none;" oninput="document.getElementById('val5').innerText = this.value">
+            </div>
+            <button id="submitSlidersBtn" onclick="submitSliders()">SEND VALUES</button>
+        </div>
+
+        <!-- Mode 5: Voting 1-10 -->
+        <div id="mode-5" style="display: none;">
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
+                <button onclick="submitVote(1)" style="padding: 10px; font-size: 16px;">1</button>
+                <button onclick="submitVote(2)" style="padding: 10px; font-size: 16px;">2</button>
+                <button onclick="submitVote(3)" style="padding: 10px; font-size: 16px;">3</button>
+                <button onclick="submitVote(4)" style="padding: 10px; font-size: 16px;">4</button>
+                <button onclick="submitVote(5)" style="padding: 10px; font-size: 16px;">5</button>
+                <button onclick="submitVote(6)" style="padding: 10px; font-size: 16px;">6</button>
+                <button onclick="submitVote(7)" style="padding: 10px; font-size: 16px;">7</button>
+                <button onclick="submitVote(8)" style="padding: 10px; font-size: 16px;">8</button>
+                <button onclick="submitVote(9)" style="padding: 10px; font-size: 16px;">9</button>
+                <button onclick="submitVote(10)" style="padding: 10px; font-size: 16px;">10</button>
+            </div>
+        </div>
     </div>
     
     <div id="message" class="message">Verifying code...</div>
@@ -155,11 +214,74 @@
     
     const messageEl = document.getElementById('message');
     const formSection = document.getElementById('form-section');
-    const submitBtn = document.getElementById('submitBtn');
-    const promptInput = document.getElementById('promptInput');
     
     // Config: URL to backend
     const BACKEND_URL = 'backend.php';
+
+    // Canvas Setup
+    const canvas = document.getElementById('drawCanvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    let currentMode = 1;
+
+    // Set initial canvas background to white
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Setup drawing events
+    function getMousePos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        if (evt.touches && evt.touches.length > 0) {
+            return {
+                x: (evt.touches[0].clientX - rect.left) * scaleX,
+                y: (evt.touches[0].clientY - rect.top) * scaleY
+            };
+        }
+        return {
+            x: (evt.clientX - rect.left) * scaleX,
+            y: (evt.clientY - rect.top) * scaleY
+        };
+    }
+
+    function startDrawing(e) {
+        e.preventDefault();
+        isDrawing = true;
+        const pos = getMousePos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const pos = getMousePos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+    }
+
+    function stopDrawing() {
+        isDrawing = false;
+        ctx.closePath();
+    }
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+
+    canvas.addEventListener('touchstart', startDrawing, {passive: false});
+    canvas.addEventListener('touchmove', draw, {passive: false});
+    canvas.addEventListener('touchend', stopDrawing);
+
+    function clearCanvas() {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     async function checkToken() {
         if (!token) {
@@ -172,9 +294,18 @@
             const data = await response.json();
             
             if (data.valid) {
+                currentMode = data.mode || 1;
                 formSection.style.display = 'block';
+                document.getElementById('mode-1').style.display = (currentMode === 1) ? 'block' : 'none';
+                document.getElementById('mode-2').style.display = (currentMode === 2) ? 'block' : 'none';
+                document.getElementById('mode-3').style.display = (currentMode === 3) ? 'block' : 'none';
+                document.getElementById('mode-4').style.display = (currentMode === 4) ? 'block' : 'none';
+                document.getElementById('mode-5').style.display = (currentMode === 5) ? 'block' : 'none';
+                
                 showMessage('', '');
-                promptInput.focus();
+                if (currentMode === 1) {
+                    document.getElementById('promptInput').focus();
+                }
             } else {
                 showMessage('This code has expired or is invalid. Please scan the screen again.', 'error');
             }
@@ -188,22 +319,24 @@
         messageEl.className = 'message ' + type;
     }
 
-    submitBtn.addEventListener('click', async () => {
-        const prompt = promptInput.value.trim();
-        if (!prompt) {
-            showMessage('Please enter a prompt first.', 'error');
-            return;
-        }
-        
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Sending...';
+    function disableUI() {
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(b => b.disabled = true);
         showMessage('', '');
-        
+    }
+
+    function enableUI() {
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(b => b.disabled = false);
+    }
+
+    async function sendDataToBackend(payload) {
+        disableUI();
         try {
             const response = await fetch(`${BACKEND_URL}?action=submit_prompt`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, prompt })
+                body: JSON.stringify({ token, prompt: payload })
             });
             const data = await response.json();
             
@@ -211,16 +344,48 @@
                 formSection.style.display = 'none';
                 showMessage('Success! Look at the screen.', 'success');
             } else {
-                showMessage(data.error || 'Failed to submit prompt.', 'error');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'I CAN DO THAT TOO';
+                showMessage(data.error || 'Failed to submit data.', 'error');
+                enableUI();
             }
         } catch (err) {
-            showMessage('Error sending prompt. Try again.', 'error');
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'I CAN DO THAT TOO';
+            showMessage('Error communicating with server.', 'error');
+            enableUI();
         }
-    });
+    }
+
+    function submitText() {
+        const prompt = document.getElementById('promptInput').value.trim();
+        if (!prompt) {
+            showMessage('Please enter text first.', 'error');
+            return;
+        }
+        sendDataToBackend(prompt);
+    }
+
+    function submitDrawing() {
+        // Send base64 image representation
+        const base64Data = canvas.toDataURL('image/png');
+        sendDataToBackend({ type: 'drawing', data: base64Data });
+    }
+
+    function submitChoice(choice) {
+        sendDataToBackend({ type: 'choice', data: choice });
+    }
+
+    function submitSliders() {
+        const sliders = {
+            param1: document.getElementById('slider1').value,
+            param2: document.getElementById('slider2').value,
+            param3: document.getElementById('slider3').value,
+            param4: document.getElementById('slider4').value,
+            param5: document.getElementById('slider5').value
+        };
+        sendDataToBackend({ type: 'sliders', data: sliders });
+    }
+
+    function submitVote(vote) {
+        sendDataToBackend({ type: 'vote', data: vote });
+    }
 
     // Run check on load
     checkToken();

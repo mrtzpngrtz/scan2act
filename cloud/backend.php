@@ -8,7 +8,8 @@ if (!file_exists($data_file)) {
     file_put_contents($data_file, json_encode([
         'active_token' => null,
         'token_expiry' => 0,
-        'pending_prompt' => null
+        'pending_prompt' => null,
+        'mode' => 1
     ]));
 }
 
@@ -32,6 +33,9 @@ header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 
 if ($action === 'generate_token') {
+    // Determine the mode
+    $mode = isset($_GET['mode']) ? (int)$_GET['mode'] : 1;
+    
     // Generate a new random token
     $token = bin2hex(random_bytes(16));
     // Set expiry to 5 minutes from now
@@ -40,10 +44,11 @@ if ($action === 'generate_token') {
     $data = get_data();
     $data['active_token'] = $token;
     $data['token_expiry'] = $expiry;
+    $data['mode'] = $mode;
     // We do NOT clear the pending_prompt here, only when it's fetched by the local poller
     save_data($data);
     
-    echo json_encode(['success' => true, 'token' => $token, 'expiry' => $expiry]);
+    echo json_encode(['success' => true, 'token' => $token, 'expiry' => $expiry, 'mode' => $mode]);
     exit;
 }
 
@@ -53,7 +58,7 @@ if ($action === 'check_token') {
     
     if ($token && $token === $data['active_token']) {
         if (time() <= $data['token_expiry']) {
-            echo json_encode(['valid' => true]);
+            echo json_encode(['valid' => true, 'mode' => $data['mode'] ?? 1]);
             exit;
         } else {
             // Expired

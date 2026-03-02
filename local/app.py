@@ -13,6 +13,26 @@ from PyQt5.QtCore import QTimer, Qt
 BACKEND_URL = "https://aop.studio/projects/qr1/backend.php"
 FRONTEND_URL = "https://aop.studio/projects/qr1/index.html"
 POLL_INTERVAL_MS = 2000 # 2 seconds
+MODE = 2 # 1: Text Prompt, 2: Drawing, 3: Yes/No, 4: Sliders, 5: Voting 1-10
+
+# Shared state for local HTTP Server
+latest_data = {"type": "none", "data": "Waiting for input..."}
+
+class LocalServerHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/api/latest':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(latest_data).encode('utf-8'))
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+def run_local_server():
+    server = HTTPServer(('127.0.0.1', 8080), LocalServerHandler)
+    server.serve_forever()
 
 class App(QWidget):
     def __init__(self):
@@ -56,7 +76,7 @@ class App(QWidget):
 
     def generate_new_token(self):
         try:
-            response = requests.get(f"{BACKEND_URL}?action=generate_token")
+            response = requests.get(f"{BACKEND_URL}?action=generate_token&mode={MODE}")
             data = response.json()
             if data.get('success'):
                 self.current_token = data['token']
@@ -102,9 +122,17 @@ class App(QWidget):
             response = requests.get(f"{BACKEND_URL}?action=poll_prompt")
             data = response.json()
             if data.get('has_prompt'):
+                global latest_data
                 prompt = data.get('prompt')
+                
+                # Detect format based on type if it's a dict (Modes 2-5), else it's raw text (Mode 1)
+                if isinstance(prompt, dict):
+                    latest_data = prompt
+                else:
+                    latest_data = {"type": "text", "data": prompt}
+
                 print(f"--- NEW PROMPT RECEIVED ---")
-                print(prompt)
+                print(latest_data)
                 print("---------------------------")
                 # TODO: Here you would send the prompt to ComfyUI
                 # e.g., send_to_comfyui(prompt)
@@ -120,6 +148,10 @@ class App(QWidget):
             print(f"Poll error: {e}")
 
 if __name__ == '__main__':
+    # Start the local server to feed display.html
+    server_thread = threading.Thread(target=run_local_server, daemon=True)
+    server_thread.start()
+    
     app = QApplication(sys.argv)
     ex = App()
     sys.exit(app.exec_())

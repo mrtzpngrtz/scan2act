@@ -16,7 +16,7 @@ By scanning a dynamically changing QR code on a local display, users are instant
 ## Directory Structure
 
 - `cloud/`: Contains the PHP backend (`backend.php`) and the web frontend (`index.html`) that users access with their phones. This should be hosted on a web server accessible via the internet.
-- `local/`: Contains the Python application (`app.py`) that runs on the computer connected to your ComfyUI generation instance and the display screen.
+- `local/`: Contains the Python application (`app.py`) that runs on the computer connected to your ComfyUI generation instance, and a local visualizer (`display.html`) to show incoming data on a screen.
 
 ## Setup Instructions
 
@@ -30,15 +30,22 @@ By scanning a dynamically changing QR code on a local display, users are instant
    pip install requests qrcode PyQt5
    ```
    
-   Open `local/app.py` and update the `BACKEND_URL` and `FRONTEND_URL` to point to your hosted cloud server.
+   Open `local/app.py` and update the `BACKEND_URL` and `FRONTEND_URL` to point to your hosted cloud server. You can also configure the interaction type by changing the `MODE` variable:
+   - `MODE = 1`: Text Prompt (ComfyUI)
+   - `MODE = 2`: Drawing/Canvas Interface
+   - `MODE = 3`: Yes / No Buttons
+   - `MODE = 4`: Five Horizontal Sliders (0-100)
+   - `MODE = 5`: Voting Buttons (1-10)
    
    Run the display application:
    ```bash
    python app.py
    ```
 
+   **Local Display:** You can optionally open `local/display.html` in any web browser on the same machine. It automatically connects to the Python app's background server and visually renders incoming data (text, drawings, slider values, choices, and votes) in real-time.
+
 4. **Usage:**
    - The Python app (`app.py`) will display a QR code locally.
    - A user scans the QR code with their mobile device, opening the cloud-hosted web interface.
    - The user inputs their data (e.g., text, slider values, drawing) on the web page and submits.
-   - The Python app immediately detects the input, prints it to the console, and generates a new, fresh QR code for the next user. From here, you can hook the Python script into any local system (ComfyUI, TouchDesigner, Arduino, OSC, etc.).
+   - The Python app immediately detects the input, prints it to the console, pushes it to `display.html`, and generates a new, fresh QR code for the next user. From here, you can hook the Python script into any local system (ComfyUI, TouchDesigner, Arduino, OSC, etc.).
