@@ -1,6 +1,15 @@
 # scan2act
 
-This is a system that allows users to submit prompts for image generation by scanning a changing QR code on a screen.
+**scan2act** is a lightweight bridge system that lets people interact with local interactive installations using their own smartphones and normal mobile internet. 
+
+By scanning a dynamically changing QR code on a local display, users are instantly connected to a cloud-hosted interface where they can send commands, inputs, or data back to the local installation. It's an incredibly convenient, frictionless way to bridge the physical installation space with the user's mobile device.
+
+**Everything is possible:**
+- Text Prompts (e.g., for AI Image Generation like ComfyUI)
+- Live Input & Controls
+- Drawing & Canvas Data
+- Choosing & Selecting Options
+- Sliders, Buttons, and Toggles
 
 ## Directory Structure
 
@@ -27,7 +36,7 @@ This is a system that allows users to submit prompts for image generation by sca
    ```
 
 4. **Usage:**
-   - The Python app will display a QR code.
-   - Scan the QR code with your phone (or click the URL if testing locally).
-   - Enter your prompt on the web page and submit.
-   - The Python app will detect the prompt, print it to the console (where you can later hook it up to ComfyUI), and generate a new QR code.
+   - The Python app (`app.py`) will display a QR code locally.
+   - A user scans the QR code with their mobile device, opening the cloud-hosted web interface.
+   - The user inputs their data (e.g., text, slider values, drawing) on the web page and submits.
+   - The Python app immediately detects the input, prints it to the console, and generates a new, fresh QR code for the next user. From here, you can hook the Python script into any local system (ComfyUI, TouchDesigner, Arduino, OSC, etc.).
